@@ -15,6 +15,6 @@ export const ESTILO_INPUT = "w-full px-4 py-3 bg-zinc-800/50 border border-zinc-
 
 export const ESTILO_ETIQUETA = "block text-sm font-medium text-zinc-300 mb-1.5"
 
-export const ESTILO_BOTON_SUBMIT = "w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-2 focus:ring-offset-zinc-950 cursor-pointer"
+export const ESTILO_BOTON_SUBMIT = "w-full py-3 bg-white hover:bg-zinc-200 disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed text-black font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-zinc-950 cursor-pointer"
 
 export const ESTILO_BOTON_OJO = "absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"

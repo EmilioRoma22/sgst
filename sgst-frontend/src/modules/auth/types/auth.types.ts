@@ -22,3 +22,17 @@ export interface ErrorApi {
     message: string
   }
 }
+
+export interface UsuarioMe {
+  id_usuario: number
+  id_empresa: number | null
+  nombre_usuario: string
+  apellidos_usuario: string
+  correo_usuario: string
+  telefono_usuario: string
+}
+
+export interface TallerMe {
+  id_taller: number
+  rol_taller: string
+}

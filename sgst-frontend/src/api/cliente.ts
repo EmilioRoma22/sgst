@@ -1,3 +1,10 @@
+/**
+ * Cliente HTTP para la API. Usa cookies (withCredentials) para identidad.
+ *
+ * Regla de seguridad: no enviar nunca id_empresa, id_usuario ni id_taller
+ * desde el store en body o query. La identidad debe venir solo de cookies/sesión;
+ * el backend la obtiene del JWT y la BD. Enviar ids del cliente debilita la seguridad.
+ */
 import axios from "axios"
 
 declare module "axios" {
@@ -14,6 +21,11 @@ const RUTAS_SIN_REFRESH = [
   "/auth/refresh",
   "/auth/logout",
 ]
+
+const RUTAS_VERIFICACION_SESION = ["/auth/me", "/auth/me/taller"]
+
+const esRutaVerificacion = (url: string | undefined) =>
+  RUTAS_VERIFICACION_SESION.some((ruta) => url?.includes(ruta))
 
 const cliente = axios.create({
   baseURL: URL_BASE,
@@ -54,7 +66,9 @@ cliente.interceptors.response.use(
       await promesaRefresco
       return cliente(configOriginal)
     } catch {
-      window.location.href = "/login"
+      if (!esRutaVerificacion(configOriginal?.url)) {
+        window.location.href = "/login"
+      }
       return Promise.reject(error)
     }
   }
