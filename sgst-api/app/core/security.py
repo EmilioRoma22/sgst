@@ -13,7 +13,9 @@ def crear_token(usuario: UsuarioDTO) -> str:
         raise ConfigError()
     if len(SECRET_KEY) < settings.JWT_SECRET_KEY_MIN_LENGTH:
         raise ConfigError()
-
+    if not ALGORITHM:
+        raise ConfigError()
+    
     exp = datetime.now(timezone.utc) + timedelta(minutes=10)
 
     payload = {

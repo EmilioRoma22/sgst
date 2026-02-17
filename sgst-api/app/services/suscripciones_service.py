@@ -10,6 +10,7 @@ from app.core.exceptions import (
     EmpresaYaTieneSuscripcionActivaException,
     EmpresaSinSuscripcionException,
 )
+from datetime import datetime, timedelta
 
 class SuscripcionesService:
     def __init__(self, bd):
@@ -62,6 +63,7 @@ class SuscripcionesService:
             data={
                 "id_empresa": usuario.id_empresa,
                 "id_licencia": id_licencia,
+                "fecha_fin": datetime.now() + timedelta(days=365),
                 "activa": 1,
             },
             returning="id_suscripcion"

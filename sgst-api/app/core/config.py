@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ALGORITMOS_JWT_PERMITIDOS = frozenset({"HS256", "HS384", "HS512", "RS256", "RS384", "RS512"})
+ALGORITMOS_JWT_PERMITIDOS = frozenset[str]({"HS256", "HS384", "HS512", "RS256", "RS384", "RS512"})
 
 def _obtener_algoritmo_jwt() -> str:
     valor = os.getenv("ALGORITMO") or "HS256"
