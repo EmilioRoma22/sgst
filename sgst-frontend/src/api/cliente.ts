@@ -20,6 +20,7 @@ const RUTAS_SIN_REFRESH = [
   "/auth/registro",
   "/auth/refresh",
   "/auth/logout",
+  "/auth/cerrar_sesion",
 ]
 
 const RUTAS_VERIFICACION_SESION = ["/auth/me", "/auth/me/taller"]

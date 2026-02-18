@@ -29,6 +29,12 @@ export const authService = {
   meTaller: () =>
     cliente.get<TallerMe | null>("/auth/me/taller"),
 
+  cerrarSesion: () =>
+    cliente.post<{ message: string }>("/auth/cerrar_sesion"),
+
+  elegirTaller: (id_taller: number) =>
+    cliente.post<{ message: string }>("/auth/taller", { id_taller }),
+
   /**
    * Obtiene /auth/me y valida la respuesta con esquema Zod.
    * Rechaza si la respuesta no cumple el contrato (p. ej. intercepción).

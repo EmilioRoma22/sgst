@@ -2,11 +2,39 @@ import type { TallerListaDto } from "../../talleres/types/taller.types"
 
 interface TarjetaTallerProps {
   taller: TallerListaDto
+  onSeleccionar?: (taller: TallerListaDto) => void
+  deshabilitado?: boolean
 }
 
-function TarjetaTaller({ taller }: TarjetaTallerProps) {
+function TarjetaTaller({ taller, onSeleccionar, deshabilitado = false }: TarjetaTallerProps) {
+  const handleClick = () => {
+    if (deshabilitado || !onSeleccionar) return
+    onSeleccionar(taller)
+  }
+
+  const esClicable = Boolean(onSeleccionar)
+
   return (
-    <div className="w-full rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 shadow-lg transition-all duration-300 hover:border-zinc-600/80 hover:shadow-xl hover:bg-zinc-900/80">
+    <div
+      role={esClicable ? "button" : undefined}
+      tabIndex={esClicable ? 0 : undefined}
+      onClick={esClicable ? handleClick : undefined}
+      onKeyDown={
+        esClicable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                handleClick()
+              }
+            }
+          : undefined
+      }
+      className={`w-full rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6 shadow-lg transition-all duration-300 ${
+        esClicable && !deshabilitado
+          ? "cursor-pointer hover:border-violet-500/60 hover:shadow-xl hover:bg-zinc-900/80 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-2 focus:ring-offset-zinc-950"
+          : ""
+      } ${deshabilitado ? "pointer-events-none opacity-60" : ""}`}
+    >
       <div className="flex flex-col gap-5">
         <h3 className="bg-linear-to-r from-violet-300 via-fuchsia-300 to-violet-300 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
           {taller.nombre_taller}
