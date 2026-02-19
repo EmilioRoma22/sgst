@@ -32,7 +32,7 @@ export const authService = {
   cerrarSesion: () =>
     cliente.post<{ message: string }>("/auth/cerrar_sesion"),
 
-  elegirTaller: (id_taller: number) =>
+  elegirTaller: (id_taller: string) =>
     cliente.post<{ message: string }>("/auth/taller", { id_taller }),
 
   /**

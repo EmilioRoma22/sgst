@@ -6,13 +6,13 @@ import { useLicencias } from "../hooks/useLicencias"
 import { useCrearSuscripcion } from "../hooks/useCrearSuscripcion"
 import type { LicenciaDto } from "../types/suscripciones.types"
 
-function formatearPrecio(valor: number) {
+function formatearPrecio(valor: number | string) {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(valor)
+  }).format(Number(valor))
 }
 
 function TarjetaLicencia({
@@ -24,6 +24,15 @@ function TarjetaLicencia({
   onSeleccionar: () => void
   deshabilitado: boolean
 }) {
+  const talleresLabel =
+    licencia.max_talleres === 0
+      ? "Ilimitado"
+      : `${licencia.max_talleres} taller${licencia.max_talleres !== 1 ? "es" : ""}`
+  const usuariosLabel =
+    licencia.max_usuarios === 0
+      ? "Ilimitado"
+      : `${licencia.max_usuarios} usuario${licencia.max_usuarios !== 1 ? "s" : ""}`
+
   return (
     <div className="group relative flex flex-col rounded-2xl border border-zinc-700/60 bg-zinc-900/80 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-blue-500/40 hover:shadow-[0_0_40px_-12px_rgba(59,130,246,0.25)]">
       <div className="mb-4 flex items-start justify-between">
@@ -38,10 +47,10 @@ function TarjetaLicencia({
       )}
       <div className="mb-6 flex flex-wrap gap-2">
         <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300">
-          {licencia.max_talleres} taller{licencia.max_talleres !== 1 ? "es" : ""}
+          {talleresLabel}
         </span>
         <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300">
-          {licencia.max_usuarios} usuario{licencia.max_usuarios !== 1 ? "s" : ""}
+          {usuariosLabel}
         </span>
       </div>
       <div className="mt-auto space-y-3 border-t border-zinc-700/50 pt-6">
@@ -122,10 +131,10 @@ function PaginaSuscripciones() {
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {licencias.map((licencia) => (
                 <TarjetaLicencia
-                  key={licencia.id_licencia}
+                  key={`${licencia.nombre_licencia}-${licencia.precio_mensual}`}
                   licencia={licencia}
                   onSeleccionar={() =>
-                    crearSuscripcion.mutate({ id_licencia: licencia.id_licencia })
+                    crearSuscripcion.mutate({ precio_mensual: licencia.precio_mensual })
                   }
                   deshabilitado={crearSuscripcion.isPending}
                 />

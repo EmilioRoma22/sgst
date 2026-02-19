@@ -4,6 +4,7 @@ import type { AxiosError } from "axios"
 import { useUsuarioStore } from "../../auth/stores/usuario.store"
 import { useTallerStore } from "../../auth/stores/taller.store"
 import { authService } from "../../auth/services/auth.service"
+import { useCerrarSesion } from "../../auth/hooks/useCerrarSesion"
 import { ROL_TALLER_ADMIN } from "../../auth/constants/roles"
 import PantallaCarga from "../../../components/ui/PantallaCarga"
 import { mostrarToast } from "../../../helpers/toast"
@@ -19,17 +20,15 @@ import ModalCerrarSesion from "./ModalCerrarSesion"
 function PaginaDashboardTalleres() {
   const navigate = useNavigate()
   const usuario = useUsuarioStore((s) => s.usuario)
-  const clearUsuario = useUsuarioStore((s) => s.clearUsuario)
-  const clearTaller = useTallerStore((s) => s.clearTaller)
   const setTaller = useTallerStore((s) => s.setTaller)
   const { data: verificacion, isLoading: cargandoVerificacion } =
     useVerificarSuscripcion()
   const { data: talleres, isLoading: cargandoTalleres } = useTalleres()
   const crearTaller = useCrearTaller()
+  const { mutate: cerrarSesion, isPending: cerrandoSesion } = useCerrarSesion()
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modalCerrarSesionAbierto, setModalCerrarSesionAbierto] = useState(false)
-  const [cerrandoSesion, setCerrandoSesion] = useState(false)
-  const [elegiendoTallerId, setElegiendoTallerId] = useState<number | null>(null)
+  const [elegiendoTallerId, setElegiendoTallerId] = useState<string | null>(null)
 
   useEffect(() => {
     if (crearTaller.isSuccess) {
@@ -52,20 +51,12 @@ function PaginaDashboardTalleres() {
     crearTaller.mutate(datos)
   }
 
-  const handleCerrarSesion = async () => {
-    setCerrandoSesion(true)
-    try {
-      await authService.cerrarSesion()
-      clearUsuario()
-      clearTaller()
-      setModalCerrarSesionAbierto(false)
-      navigate("/login", { replace: true })
-    } finally {
-      setCerrandoSesion(false)
-    }
+  const handleCerrarSesion = () => {
+    cerrarSesion()
+    setModalCerrarSesionAbierto(false)
   }
 
-  const handleSeleccionarTaller = async (taller: { id_taller: number }) => {
+  const handleSeleccionarTaller = async (taller: { id_taller: string }) => {
     setElegiendoTallerId(taller.id_taller)
     try {
       await authService.elegirTaller(taller.id_taller)

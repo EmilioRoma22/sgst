@@ -1,6 +1,6 @@
 export interface TallerListaDto {
-  id_taller: number
-  id_empresa: number
+  id_taller: string
+  id_empresa: string
   nombre_taller: string
   telefono_taller: string | null
   correo_taller: string | null

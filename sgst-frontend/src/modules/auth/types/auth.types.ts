@@ -24,8 +24,8 @@ export interface ErrorApi {
 }
 
 export interface UsuarioMe {
-  id_usuario: number
-  id_empresa: number | null
+  id_usuario: string
+  id_empresa: string | null
   nombre_usuario: string
   apellidos_usuario: string
   correo_usuario: string
@@ -33,6 +33,6 @@ export interface UsuarioMe {
 }
 
 export interface TallerMe {
-  id_taller: number
+  id_taller: string
   rol_taller: string
 }

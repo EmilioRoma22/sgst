@@ -9,6 +9,9 @@ export const talleresService = {
   listarPorEmpresa: () =>
     cliente.get<TallerListaDto[]>("/talleres"),
 
+  obtenerPorId: (id_taller: string) =>
+    cliente.get<TallerListaDto>(`/talleres/${id_taller}`),
+
   crear: (datos: CrearTallerDTO) =>
     cliente.post<RespuestaCrearTaller>("/talleres", datos),
 }

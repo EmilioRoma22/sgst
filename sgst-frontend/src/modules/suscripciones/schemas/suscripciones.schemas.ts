@@ -1,7 +1,7 @@
 import { z } from "zod"
 
+/** Listado de licencias (la API no devuelve id_licencia). */
 export const licenciaDtoSchema = z.object({
-  id_licencia: z.number(),
   nombre_licencia: z.string(),
   descripcion: z.string().nullable(),
   precio_mensual: z.string(),
@@ -12,8 +12,8 @@ export const licenciaDtoSchema = z.object({
 
 export const suscripcionDtoSchema = z.object({
   id_suscripcion: z.number(),
-  id_empresa: z.number(),
-  id_licencia: z.number(),
+  id_empresa: z.uuid(),
+  id_licencia: z.uuid(),
   fecha_inicio: z.string(),
   fecha_fin: z.string().nullable(),
   activa: z.boolean(),
@@ -21,8 +21,7 @@ export const suscripcionDtoSchema = z.object({
 
 export const verificacionSuscripcionSchema = z.object({
   tiene_suscripcion: z.boolean(),
-  suscripcion: suscripcionDtoSchema.nullable(),
-  licencia: licenciaDtoSchema.nullable(),
+  id_licencia: z.uuid().nullable(),
 })
 
 export type VerificacionSuscripcionValidado = z.infer<

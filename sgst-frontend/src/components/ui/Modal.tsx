@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { type ReactNode, useEffect, useRef } from "react"
 import { AnimatePresence, motion } from "motion/react"
 
 interface ModalProps {
@@ -9,8 +9,40 @@ interface ModalProps {
 }
 
 function Modal({ open, onClose, children, title }: ModalProps) {
+  const modalContentRef = useRef<HTMLDivElement>(null)
+  const mouseDownTargetRef = useRef<EventTarget | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose()
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape)
+    return () => {
+      document.removeEventListener("keydown", handleEscape)
+    }
+  }, [open, onClose])
+
+  const handleOverlayMouseDown = (e: React.MouseEvent) => {
+    mouseDownTargetRef.current = e.target
+  }
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (
+      mouseDownTargetRef.current === e.target &&
+      e.target === e.currentTarget
+    ) {
+      onClose()
+    }
+    mouseDownTargetRef.current = null
+  }
+
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {open && (
         <motion.div
           key="modal-overlay"
@@ -19,14 +51,17 @@ function Modal({ open, onClose, children, title }: ModalProps) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={onClose}
+          onMouseDown={handleOverlayMouseDown}
+          onClick={handleOverlayClick}
         >
           <motion.div
+            ref={modalContentRef}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
             className="w-full max-w-md rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-2xl"
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
             {title && (

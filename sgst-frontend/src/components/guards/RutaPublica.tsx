@@ -12,9 +12,14 @@ function RutaPublica() {
   if (cargando) return <PantallaCarga />
 
   if (autenticado && usuario) {
+    // Si tiene taller seleccionado, ir al dashboard
     if (taller) return <Navigate to="/dashboard" replace />
-    if (!usuario.id_empresa) return <Navigate to="/empresa/crear" replace />
-    return <Navigate to="/suscripciones" replace />
+    
+    // Si es administrador (tiene id_empresa) pero no tiene taller, ir a talleres
+    if (usuario.id_empresa) return <Navigate to="/dashboard/talleres" replace />
+    
+    // Si no tiene empresa, ir a crear empresa
+    return <Navigate to="/empresa/crear" replace />
   }
 
   return <Outlet />
