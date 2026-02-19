@@ -3,7 +3,6 @@ from datetime import date
 from decimal import Decimal
 
 class LicenciaDTO(BaseModel):
-    """Respuesta al listar licencias: sin id, precios como string."""
     nombre_licencia: str
     descripcion: str | None = None
     precio_mensual: str
@@ -12,7 +11,6 @@ class LicenciaDTO(BaseModel):
     max_usuarios: int
 
 class CrearSuscripcionDTO(BaseModel):
-    """Se envía solo el precio; el backend busca la licencia por precio_mensual."""
     precio_mensual: str = Field(..., min_length=1)
 
 class SuscripcionDTO(BaseModel):

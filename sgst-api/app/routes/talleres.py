@@ -26,10 +26,6 @@ async def obtener_taller_por_id(
     taller_actual: TallerDTO | None = Depends(obtener_taller_actual),
     bd=Depends(obtener_conexion_bd),
 ):
-    """
-    Obtiene un taller por su ID.
-    Verifica que el usuario tenga acceso al taller (pertenece al taller actual).
-    """
     if not taller_actual:
         raise UsuarioNoPerteneceAlTallerException()
     

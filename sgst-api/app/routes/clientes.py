@@ -20,10 +20,6 @@ async def listar_clientes(
     pagination: PaginationParams = Depends(pagination_params),
     bd=Depends(obtener_conexion_bd),
 ):
-    """
-    Lista los clientes del taller actual con paginación y búsqueda.
-    Solo los administradores del taller pueden acceder a este endpoint.
-    """
     clientes_service = ClientesService(bd)
     resultado = clientes_service.listar_clientes(taller_actual.id_taller, pagination)
     return resultado
@@ -35,10 +31,6 @@ async def obtener_cliente(
     taller_actual: TallerDTO = Depends(verificar_es_admin_taller),
     bd=Depends(obtener_conexion_bd),
 ):
-    """
-    Obtiene un cliente específico por su ID.
-    Solo los administradores del taller pueden acceder a este endpoint.
-    """
     clientes_service = ClientesService(bd)
     cliente = clientes_service.obtener_cliente(id_cliente, taller_actual.id_taller)
     return cliente
@@ -50,10 +42,6 @@ async def crear_cliente(
     taller_actual: TallerDTO = Depends(verificar_es_admin_taller),
     bd=Depends(obtener_conexion_bd),
 ):
-    """
-    Crea un nuevo cliente en el taller actual.
-    Solo los administradores del taller pueden acceder a este endpoint.
-    """
     clientes_service = ClientesService(bd)
     cliente_creado = clientes_service.crear_cliente(datos, taller_actual.id_taller)
     return {
@@ -69,10 +57,6 @@ async def actualizar_cliente(
     taller_actual: TallerDTO = Depends(verificar_es_admin_taller),
     bd=Depends(obtener_conexion_bd),
 ):
-    """
-    Actualiza un cliente existente en el taller actual.
-    Solo los administradores del taller pueden acceder a este endpoint.
-    """
     clientes_service = ClientesService(bd)
     cliente_actualizado = clientes_service.actualizar_cliente(id_cliente, datos, taller_actual.id_taller)
     return {
@@ -87,10 +71,6 @@ async def eliminar_cliente(
     taller_actual: TallerDTO = Depends(verificar_es_admin_taller),
     bd=Depends(obtener_conexion_bd),
 ):
-    """
-    Elimina un cliente del taller actual.
-    Solo los administradores del taller pueden acceder a este endpoint.
-    """
     clientes_service = ClientesService(bd)
     clientes_service.eliminar_cliente(id_cliente, taller_actual.id_taller)
     return {"message": "El cliente se ha eliminado correctamente"}

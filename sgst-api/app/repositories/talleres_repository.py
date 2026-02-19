@@ -39,11 +39,6 @@ class TalleresRepository(BaseRepository):
         return TallerListaDTO(**fila) if fila else None
 
     def obtener_por_id_simple(self, id_taller: str) -> TallerListaDTO | None:
-        """
-        Obtiene un taller por su ID sin verificar empresa.
-        Útil cuando el usuario puede estar en un taller que no es de su empresa
-        (técnico o recepcionista).
-        """
         query = f"""SELECT id_taller, id_empresa, nombre_taller, telefono_taller,
                            correo_taller, direccion_taller, rfc_taller, ruta_logo
                     FROM {self.table_name}

@@ -8,13 +8,6 @@ class ClientesRepository(BaseRepository):
     searchable_fields = ["nombre_cliente", "apellidos_cliente", "correo_cliente", "telefono_cliente"]
 
     def listar_por_taller(self, id_taller: str, pagination: PaginationParams) -> List[Dict[str, Any]]:
-        """
-        Lista clientes de un taller con paginación y búsqueda.
-        
-        :param id_taller: ID del taller
-        :param pagination: Parámetros de paginación y búsqueda
-        :return: Lista de clientes
-        """
         base_query = f"SELECT * FROM {self.table_name} WHERE id_taller = %s"
         search_clause, search_params = self._build_search_clause(pagination.search)
         
@@ -41,13 +34,6 @@ class ClientesRepository(BaseRepository):
         )
 
     def obtener_por_id(self, id_cliente: int, id_taller: str) -> ClienteDTO | None:
-        """
-        Obtiene un cliente por ID verificando que pertenezca al taller.
-        
-        :param id_cliente: ID del cliente
-        :param id_taller: ID del taller
-        :return: ClienteDTO si existe, None si no existe o no pertenece al taller
-        """
         query = f"""SELECT * FROM {self.table_name} 
                     WHERE id_cliente = %s AND id_taller = %s"""
         self.execute(query, (id_cliente, id_taller))
@@ -55,14 +41,6 @@ class ClientesRepository(BaseRepository):
         return ClienteDTO(**fila) if fila else None
 
     def existe_correo_en_taller(self, id_taller: str, correo: str, excluir_id: int | None = None) -> bool:
-        """
-        Verifica si un correo ya existe en el taller.
-        
-        :param id_taller: ID del taller
-        :param correo: Correo a verificar
-        :param excluir_id: ID del cliente a excluir de la búsqueda (útil para actualizaciones)
-        :return: True si existe, False si no existe
-        """
         if not correo:
             return False
         
@@ -79,14 +57,6 @@ class ClientesRepository(BaseRepository):
         return resultado["total"] > 0 if resultado else False
 
     def existe_telefono_en_taller(self, id_taller: str, telefono: str, excluir_id: int | None = None) -> bool:
-        """
-        Verifica si un teléfono ya existe en el taller.
-        
-        :param id_taller: ID del taller
-        :param telefono: Teléfono a verificar
-        :param excluir_id: ID del cliente a excluir de la búsqueda (útil para actualizaciones)
-        :return: True si existe, False si no existe
-        """
         if not telefono:
             return False
         
@@ -103,13 +73,6 @@ class ClientesRepository(BaseRepository):
         return resultado["total"] > 0 if resultado else False
 
     def contar_por_taller(self, id_taller: str, search: str | None = None) -> int:
-        """
-        Cuenta el total de clientes del taller que coinciden con la búsqueda.
-        
-        :param id_taller: ID del taller
-        :param search: Término de búsqueda opcional
-        :return: Número total de clientes
-        """
         base = f"SELECT COUNT(*) as total FROM {self.table_name} WHERE id_taller = %s"
         search_clause, params = self._build_search_clause(search)
         
