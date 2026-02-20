@@ -264,12 +264,48 @@ class ClienteDuplicadoException(AppException):
             details={"campo": campo}
         )
 
+class EquipoNoEncontradoException(AppException):
+    def __init__(self):
+        super().__init__(
+            status_code=404,
+            code="EQUIPO_NO_ENCONTRADO",
+            message="El equipo no existe o no pertenece a este taller.",
+            details={}
+        )
+
+class EquipoDuplicadoException(AppException):
+    def __init__(self, campo: str = "número de serie"):
+        super().__init__(
+            status_code=400,
+            code="EQUIPO_DUPLICADO",
+            message=f"Ya existe un equipo con ese {campo} en este taller.",
+            details={"campo": campo}
+        )
+
+class TipoEquipoNoEncontradoException(AppException):
+    def __init__(self):
+        super().__init__(
+            status_code=404,
+            code="TIPO_EQUIPO_NO_ENCONTRADO",
+            message="El tipo de equipo no existe o no pertenece a este taller.",
+            details={}
+        )
+
+class TipoEquipoDuplicadoException(AppException):
+    def __init__(self, campo: str = "nombre"):
+        super().__init__(
+            status_code=400,
+            code="TIPO_EQUIPO_DUPLICADO",
+            message=f"Ya existe un tipo de equipo con ese {campo} en este taller.",
+            details={"campo": campo}
+        )
+
 class NoEsAdministradorDelTallerException(AppException):
     def __init__(self):
         super().__init__(
             status_code=403,
             code="NO_ES_ADMINISTRADOR_DEL_TALLER",
-            message="Solo los administradores del taller pueden realizar esta acción.",
+            message="Solo los administradores del taller pueden acceder a este recurso.",
             details={}
         )
 
@@ -279,5 +315,32 @@ class TallerNoEspecificadoException(AppException):
             status_code=400,
             code="TALLER_NO_ESPECIFICADO",
             message="No se ha especificado un taller. Por favor, seleccione un taller primero.",
+            details={}
+        )
+
+class NoHayTallerActivoException(AppException):
+    def __init__(self):
+        super().__init__(
+            status_code=403,
+            code="NO_HAY_TALLER_ACTIVO",
+            message="Se necesita un taller activo para acceder a este recurso.",
+            details={}
+        )
+
+class TallerNoTieneEmpresaAsociadaException(AppException):
+    def __init__(self):
+        super().__init__(
+            status_code=403,
+            code="TALLER_NO_TIENE_EMPRESA_ASOCIADA",
+            message="El taller no tiene una empresa asociada. Comuníquese con el administrador para más información.",
+            details={}
+        )
+
+class NoTienesPermisoParaAccederARecursoException(AppException):
+    def __init__(self):
+        super().__init__(
+            status_code=403,
+            code="NO_TIENES_PERMISO_PARA_ACCEDER_A_RECURSO",
+            message="No tienes permisos para acceder a este recurso.",
             details={}
         )

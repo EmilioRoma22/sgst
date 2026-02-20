@@ -5,6 +5,7 @@ from app.models.usuarios import UsuarioDTO
 from app.models.taller import CrearTallerDTO, TallerDTO
 from app.services.talleres_service import TalleresService
 from app.core.exceptions import UsuarioNoPerteneceAlTallerException
+from app.dependencies.suscripciones import verificar_suscripcion_y_max_talleres
 
 router = APIRouter(
     prefix="/talleres",
@@ -39,7 +40,7 @@ async def obtener_taller_por_id(
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def crear_taller(
     datos: CrearTallerDTO,
-    usuario: UsuarioDTO = Depends(obtener_usuario_actual),
+    usuario: UsuarioDTO = Depends(verificar_suscripcion_y_max_talleres),
     bd=Depends(obtener_conexion_bd),
 ):
     talleres_service = TalleresService(bd)

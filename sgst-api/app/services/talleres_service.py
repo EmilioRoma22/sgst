@@ -23,17 +23,6 @@ class TalleresService:
 
         if self.talleres_repository.existe_nombre_taller_en_empresa(usuario.id_empresa, datos.nombre_taller):
             raise NombreTallerRepetidoException()
-        
-        # Verificamos que su suscripción activa tenga talleres disponibles para agregar.
-        suscripcion_activa = self.suscripciones_repository.obtener_suscripcion_activa_por_empresa(usuario.id_empresa)
-        
-        if not suscripcion_activa:
-            raise EmpresaSinSuscripcionException()
-        
-        max_talleres = self.suscripciones_repository.obtener_max_talleres_por_suscripcion(usuario.id_empresa)
-        cantidad_talleres = len(self.talleres_repository.listar_por_empresa(usuario.id_empresa))
-        if max_talleres > 0 and cantidad_talleres >= max_talleres:
-            raise EmpresaYaTieneMaxTalleresException()
 
         id_taller = str(uuid.uuid4())
         self.talleres_repository.create(

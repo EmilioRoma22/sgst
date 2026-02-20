@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.rate_limit import limiter
-from app.routes import auth, empresas, suscripciones, talleres, clientes
+from app.routes import auth, empresas, suscripciones, talleres, clientes, equipos
 from app.core.exceptions import AppException
 
 
@@ -51,6 +51,7 @@ def include_routers(app: FastAPI) -> None:
     app.include_router(suscripciones.router, prefix=settings.API_V1_PREFIX)
     app.include_router(talleres.router, prefix=settings.API_V1_PREFIX)
     app.include_router(clientes.router, prefix=settings.API_V1_PREFIX)
+    app.include_router(equipos.router, prefix=settings.API_V1_PREFIX)
 
 app = create_app()
 
