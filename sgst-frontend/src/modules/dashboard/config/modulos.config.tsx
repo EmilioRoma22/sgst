@@ -245,6 +245,20 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     roles: [ROL_TALLER_ADMIN, ROL_TALLER_TECNICO, ROL_TALLER_RECEPCIONISTA],
   },
   {
+    id: "proveedores",
+    nombre: "Proveedores",
+    ruta: "/dashboard/proveedores",
+    icono: IconoProveedores,
+    roles: [ROL_TALLER_ADMIN],
+  },
+  {
+    id: "compras",
+    nombre: "Compras",
+    ruta: "/dashboard/compras",
+    icono: IconoCompras,
+    roles: [ROL_TALLER_ADMIN],
+  },
+  {
     id: "refacciones",
     nombre: "Refacciones",
     ruta: "/dashboard/refacciones",
@@ -259,13 +273,6 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     roles: [ROL_TALLER_ADMIN],
   },
   {
-    id: "compras",
-    nombre: "Compras",
-    ruta: "/dashboard/compras",
-    icono: IconoCompras,
-    roles: [ROL_TALLER_ADMIN],
-  },
-  {
     id: "ventas",
     nombre: "Ventas",
     ruta: "/dashboard/ventas",
@@ -277,20 +284,6 @@ export const MODULOS_DASHBOARD: ModuloDashboard[] = [
     nombre: "Finanzas",
     ruta: "/dashboard/finanzas",
     icono: IconoFinanzas,
-    roles: [ROL_TALLER_ADMIN],
-  },
-  {
-    id: "gastos",
-    nombre: "Gastos",
-    ruta: "/dashboard/gastos",
-    icono: IconoGastos,
-    roles: [ROL_TALLER_ADMIN],
-  },
-  {
-    id: "proveedores",
-    nombre: "Proveedores",
-    ruta: "/dashboard/proveedores",
-    icono: IconoProveedores,
     roles: [ROL_TALLER_ADMIN],
   },
   {
