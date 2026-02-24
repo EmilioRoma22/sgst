@@ -10,9 +10,6 @@ class ClientesService:
         self.clientes_repository = ClientesRepository(self.bd)
 
     def listar_clientes(self, id_taller: str, pagination: PaginationParams) -> Dict[str, Any]:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
-
         clientes = self.clientes_repository.listar_por_taller(id_taller, pagination)
         total = self.clientes_repository.contar_por_taller(id_taller, pagination.search)
 
@@ -27,9 +24,6 @@ class ClientesService:
         }
 
     def obtener_cliente(self, id_cliente: int, id_taller: str) -> ClienteDTO:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
-
         cliente = self.clientes_repository.obtener_por_id(id_cliente, id_taller)
         
         if not cliente:
@@ -38,9 +32,6 @@ class ClientesService:
         return cliente
 
     def crear_cliente(self, datos: CrearClienteDTO, id_taller: str) -> ClienteDTO:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
-
         if datos.correo_cliente:
             if self.clientes_repository.existe_correo_en_taller(id_taller, datos.correo_cliente):
                 raise ClienteDuplicadoException("correo")
@@ -69,9 +60,6 @@ class ClientesService:
         return cliente_creado
 
     def actualizar_cliente(self, id_cliente: int, datos: ActualizarClienteDTO, id_taller: str) -> ClienteDTO:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
-
         cliente_existente = self.clientes_repository.obtener_por_id(id_cliente, id_taller)
         
         if not cliente_existente:
@@ -112,12 +100,9 @@ class ClientesService:
         return cliente_actualizado
 
     def eliminar_cliente(self, id_cliente: int, id_taller: str) -> None:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
-
         cliente = self.clientes_repository.obtener_por_id(id_cliente, id_taller)
         
         if not cliente:
             raise ClienteNoEncontradoException()
 
-        self.clientes_repository.delete(id_cliente, "id_cliente")
+        self.clientes_repository.soft_delete(id_value=id_cliente, id_column="id_cliente")

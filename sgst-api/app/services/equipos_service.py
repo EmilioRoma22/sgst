@@ -6,8 +6,7 @@ from app.repositories.tipo_equipos_repository import TipoEquiposRepository
 from app.core.exceptions import (
     EquipoNoEncontradoException,
     EquipoDuplicadoException,
-    TipoEquipoNoEncontradoException,
-    TallerNoEspecificadoException,
+    TipoEquipoNoEncontradoException
 )
 
 class EquiposService:
@@ -22,8 +21,6 @@ class EquiposService:
         pagination: PaginationParams,
         id_tipo: int | None = None,
     ) -> Dict[str, Any]:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
         if id_tipo is not None:
             tipo = self.tipo_equipos_repository.obtener_por_id(id_tipo, id_taller)
             if not tipo:
@@ -47,16 +44,12 @@ class EquiposService:
         }
 
     def obtener_equipo(self, id_equipo: int, id_taller: str) -> EquipoDTO:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
         equipo = self.equipos_repository.obtener_por_id(id_equipo, id_taller)
         if not equipo:
             raise EquipoNoEncontradoException()
         return equipo
 
     def crear_equipo(self, datos: CrearEquipoDTO, id_taller: str) -> EquipoDTO:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
         tipo = self.tipo_equipos_repository.obtener_por_id(datos.id_tipo, id_taller)
         if not tipo:
             raise TipoEquipoNoEncontradoException()
@@ -79,8 +72,6 @@ class EquiposService:
     def actualizar_equipo(
         self, id_equipo: int, datos: ActualizarEquipoDTO, id_taller: str
     ) -> EquipoDTO:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
         equipo_existente = self.equipos_repository.obtener_por_id(id_equipo, id_taller)
         if not equipo_existente:
             raise EquipoNoEncontradoException()
@@ -111,9 +102,7 @@ class EquiposService:
         return equipo_actualizado
 
     def eliminar_equipo(self, id_equipo: int, id_taller: str) -> None:
-        if not id_taller:
-            raise TallerNoEspecificadoException()
         equipo = self.equipos_repository.obtener_por_id(id_equipo, id_taller)
         if not equipo:
             raise EquipoNoEncontradoException()
-        self.equipos_repository.delete(id_equipo, "id_equipo")
+        self.equipos_repository.soft_delete(id_value=id_equipo, id_column="id_equipo")
