@@ -58,7 +58,6 @@ export function useCerrarSesion() {
     onError: () => {
       clearUsuario()
       clearTaller()
-      mostrarToast.error("Error al cerrar sesión")
       navigate("/login", { replace: true })
     },
   })
