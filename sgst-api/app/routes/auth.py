@@ -143,7 +143,7 @@ async def elegir_taller(
     response.set_cookie(
         key="id_taller_actual",
         value=str(datos.id_taller),
-        max_age=10 * 60,
+        max_age=24 * 60 * 60,
         **_cookie_params(),
     )
     return response
@@ -163,7 +163,7 @@ async def login_taller(request: Request, bd = Depends(obtener_conexion_bd)):
         response.set_cookie(
             key="id_taller_actual",
             value=str(taller_rol.id_taller),
-            max_age=10 * 60,
+            max_age=24 * 60 * 60,
             **_cookie_params(),
         )
     return response
