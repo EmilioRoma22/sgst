@@ -1,13 +1,12 @@
 from fastapi import Depends, Request
 from app.core.exceptions import UsuarioNoEncontradoException, UsuarioNoPerteneceAlTallerException, NoEsAdministradorDelTallerException, TallerNoEspecificadoException, NoTienesPermisoParaAccederARecursoException
-from app.core.security import decodificar_token
+from app.core.security import decodificar_token, decodificar_token_sin_validar
 from app.dependencies.database import obtener_conexion_bd
 from app.models.usuarios import UsuarioDTO
 from app.core.exceptions import TokenInvalidoException, TokenException
 from app.repositories.usuarios_repository import UsuariosRepository
 from app.models.taller import TallerDTO
 from app.repositories.usuarios_talleres_repository import UsuariosTalleresRepository
-from app.constants.roles import Roles
 
 def obtener_usuario_actual(request: Request, db = Depends(obtener_conexion_bd)) -> UsuarioDTO:
     token = request.cookies.get("access_token")
@@ -29,6 +28,20 @@ def obtener_usuario_actual(request: Request, db = Depends(obtener_conexion_bd)) 
 
     if not usuario.activo:
         raise UsuarioNoEncontradoException()
+
+    return usuario
+
+def obtener_usuario_actual_sin_validar(request: Request, db = Depends(obtener_conexion_bd)) -> UsuarioDTO:
+    token = request.cookies.get("access_token")
+    
+    if not token:
+        raise TokenException()
+    
+    payload = decodificar_token_sin_validar(token)
+    id_usuario = payload.get("id_usuario")
+    
+    usuarios_repository = UsuariosRepository(db)
+    usuario = usuarios_repository.obtener_usuario_por_id(id_usuario)
 
     return usuario
 

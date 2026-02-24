@@ -8,7 +8,7 @@ from app.dependencies.database import obtener_conexion_bd
 from app.services.auth_service import AuthService
 from app.services.tokens_service import TokensService
 from app.models.usuarios import UsuarioDTO
-from app.dependencies.auth import obtener_usuario_actual, obtener_taller_actual
+from app.dependencies.auth import obtener_usuario_actual, obtener_usuario_actual_sin_validar, obtener_taller_actual
 from app.models.taller import TallerDTO, ElegirTallerDTO
 from app.core.exceptions import NoEsAdministradorException, TallerNoEncontradoException, TallerNoPerteneceAEmpresaException
 from app.repositories.talleres_repository import TalleresRepository
@@ -95,36 +95,6 @@ async def login(request: Request, credenciales: LoginDTO, bd=Depends(obtener_con
     )
     return response
 
-@router.post("/cerrar_sesion", status_code=status.HTTP_200_OK)
-async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_usuario_actual), bd=Depends(obtener_conexion_bd)):
-    response = JSONResponse(
-        content={"message": "Sesión cerrada correctamente"},
-        status_code=status.HTTP_200_OK,
-    )
-    cookie_params = _cookie_params()
-    # Si el usuario no es administrador, entonces es un logout desde el dashboard hecho por un empleado, 
-    # por ende, se cierra la sesión por completo.
-    if usuario.id_empresa is None:
-        response.delete_cookie("access_token", **cookie_params)
-        response.delete_cookie("refresh_token", **cookie_params)
-        
-        tokens_service = TokensService(bd)
-        tokens_service.revocar_refresh_token(request.cookies.get("refresh_token"))
-        
-    id_taller_cookie = request.cookies.get("id_taller_actual")
-    # Si el usuario es administrador y no tiene un taller activo, 
-    # entonces es un logout desde dahsboard/talleres, por ende, se cierra sesión por completo.
-    # Si tiene un taller activo, no se cierra la sesión por completo, solo se cierra el taller activo para que el admin
-    # vaya directamente al dashboard/talleres.
-    if usuario.id_empresa is not None and id_taller_cookie is None:
-        response.delete_cookie("access_token", **cookie_params)
-        response.delete_cookie("refresh_token", **cookie_params)
-        
-        tokens_service = TokensService(bd)
-        tokens_service.revocar_refresh_token(request.cookies.get("refresh_token"))
-    response.delete_cookie("id_taller_actual", **cookie_params)
-    return response
-
 @router.post("/taller", status_code=status.HTTP_200_OK)
 async def elegir_taller(
     datos: ElegirTallerDTO,
@@ -177,3 +147,33 @@ async def registro(request: Request, datos: RegistroDTO, bd=Depends(obtener_cone
     return {
         "message": f"{datos.nombre_usuario} ha sido registrado correctamente"
     }
+
+@router.post("/cerrar_sesion", status_code=status.HTTP_200_OK)
+async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_usuario_actual_sin_validar), bd=Depends(obtener_conexion_bd)):
+    response = JSONResponse(
+        content={"message": "Sesión cerrada correctamente"},
+        status_code=status.HTTP_200_OK,
+    )
+    cookie_params = _cookie_params()
+    # Si el usuario no es administrador, entonces es un logout desde el dashboard hecho por un empleado, 
+    # por ende, se cierra la sesión por completo.
+    if usuario.id_empresa is None:
+        response.delete_cookie("access_token", **cookie_params)
+        response.delete_cookie("refresh_token", **cookie_params)
+        
+        tokens_service = TokensService(bd)
+        tokens_service.revocar_refresh_token(request.cookies.get("refresh_token"))
+        
+    id_taller_cookie = request.cookies.get("id_taller_actual")
+    # Si el usuario es administrador y no tiene un taller activo, 
+    # entonces es un logout desde dahsboard/talleres, por ende, se cierra sesión por completo.
+    # Si tiene un taller activo, no se cierra la sesión por completo, solo se cierra el taller activo para que el admin
+    # vaya directamente al dashboard/talleres.
+    if usuario.id_empresa is not None and id_taller_cookie is None:
+        response.delete_cookie("access_token", **cookie_params)
+        response.delete_cookie("refresh_token", **cookie_params)
+        
+        tokens_service = TokensService(bd)
+        tokens_service.revocar_refresh_token(request.cookies.get("refresh_token"))
+    response.delete_cookie("id_taller_actual", **cookie_params)
+    return response

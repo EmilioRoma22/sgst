@@ -42,3 +42,18 @@ def decodificar_token(token: str) -> dict:
 
     except PyJWTError:
         raise TokenInvalidoException()
+
+# ESTE MÉTODO SOLAMENTE USARSE EN CERRAR SESIÓN, ES SIMPLEMENTE PARA OBTENER EL ID DEL USUARIO, NO USAR ESTE MÉTODO EN OTROS CASOS.
+def decodificar_token_sin_validar(token: str) -> dict:
+    payload = jwt.decode(
+        token,
+        SECRET_KEY,
+        algorithms=[ALGORITHM],
+        verify=False,
+        options={
+            "verify_signature": False,
+            "verify_exp": False,
+        }
+    )
+    
+    return payload
