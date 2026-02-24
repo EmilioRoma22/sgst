@@ -1,7 +1,13 @@
 -- ============================================
 -- SGST
--- MySQL 8+
+-- MariaDB 12.3
 -- ============================================
+--
+-- ADVERTENCIA: INSTALACIÓN LIMPIA
+-- Este script ejecuta DROP DATABASE y borra toda la base de datos sgst.
+-- Usar únicamente en instalaciones nuevas o entornos controlados.
+-- NO ejecutar en producción con datos que deban conservarse.
+--
 
 DROP DATABASE IF EXISTS sgst;
 CREATE DATABASE sgst CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -13,25 +19,28 @@ USE sgst;
 CREATE TABLE cat_prioridades (
   id_prioridad TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   clave VARCHAR(30) NOT NULL UNIQUE,
-  descripcion VARCHAR(100) NOT NULL,
-  orden_int INT DEFAULT 0
+  descripcion VARCHAR(100) NOT NULL
 ) ENGINE=InnoDB;
 
-INSERT INTO cat_prioridades (clave, descripcion, orden_int)
-VALUES ('baja','Baja',10),('normal','Normal',20),('alta','Alta',30),('urgente','Urgente',40);
+INSERT INTO cat_prioridades (clave, descripcion)
+VALUES ('baja','Baja'),('normal','Normal'),('alta','Alta'),('urgente','Urgente');
 
 CREATE TABLE cat_estados (
   id_estado TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   clave VARCHAR(50) NOT NULL UNIQUE,
-  descripcion VARCHAR(100) NOT NULL,
-  orden_int INT DEFAULT 0
+  descripcion VARCHAR(100) NOT NULL
 ) ENGINE=InnoDB;
 
-INSERT INTO cat_estados (clave, descripcion, orden_int)
-VALUES ('recibido','Recibido',10),('en_reparacion','En reparación',20),('finalizado','Finalizado',30),('listo_para_entregar','Listo para entregar',40),('cancelado','Cancelado',50);
+INSERT INTO cat_estados (clave, descripcion)
+VALUES 
+('recibido','Recibido'),
+('en_reparacion','En reparación'),
+('listo_para_entregar','Listo para entregar'),
+('finalizado','Finalizado'), -- Este solamente se puede usar cuando se entrega la orden, no es una opción seleccionable en el frontend.
+('cancelado','Cancelado');
 
 -- =========================
--- LICENCIAS (UUIDs fijos para referenciar desde frontend)
+-- LICENCIAS
 -- =========================
 CREATE TABLE licencias (
   id_licencia CHAR(36) PRIMARY KEY,
@@ -63,9 +72,9 @@ CREATE TABLE usuarios (
   correo_usuario VARCHAR(150),
   telefono_usuario VARCHAR(20),
   hash_password VARCHAR(255) NOT NULL,
-  activo TINYINT DEFAULT 1,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   ultima_sesion TIMESTAMP NULL,
+  activo TINYINT DEFAULT 1,
   CONSTRAINT fk_usuarios_empresa FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -94,7 +103,7 @@ CREATE TABLE suscripciones (
   id_licencia CHAR(36) NOT NULL,
   fecha_inicio DATE NOT NULL DEFAULT (CURRENT_DATE),
   fecha_fin DATE NULL,
-  activa TINYINT DEFAULT 1,
+  activo TINYINT DEFAULT 1,
   FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa) ON DELETE CASCADE,
   FOREIGN KEY (id_licencia) REFERENCES licencias(id_licencia) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
@@ -111,8 +120,8 @@ CREATE TABLE talleres (
   direccion_taller VARCHAR(255),
   rfc_taller VARCHAR(20),
   ruta_logo VARCHAR(255),
-  activo TINYINT DEFAULT 1,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  activo TINYINT DEFAULT 1,
   UNIQUE (id_empresa, nombre_taller),
   FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -123,8 +132,8 @@ CREATE TABLE usuarios_talleres (
   id_usuario CHAR(36) NOT NULL,
   id_taller CHAR(36) NOT NULL,
   rol_taller ENUM('ADMIN', 'TECNICO', 'RECEPCIONISTA') NOT NULL,
-  activo TINYINT DEFAULT 1,
   fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  activo TINYINT DEFAULT 1,
   FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
   FOREIGN KEY (id_taller) REFERENCES talleres(id_taller) ON DELETE CASCADE,
   UNIQUE (id_usuario, id_taller)
@@ -144,6 +153,7 @@ CREATE TABLE clientes (
   notas_cliente TEXT,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   ultima_actualizacion TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+  activo TINYINT DEFAULT 1,
   FOREIGN KEY (id_taller) REFERENCES talleres(id_taller) ON DELETE RESTRICT,
   UNIQUE (id_taller, correo_cliente),
   UNIQUE (id_taller, telefono_cliente),
@@ -157,8 +167,8 @@ CREATE TABLE tipo_equipos (
   id_tipo INT AUTO_INCREMENT PRIMARY KEY,
   id_taller CHAR(36) NOT NULL,
   nombre_tipo VARCHAR(100) NOT NULL,
-  activo TINYINT DEFAULT 1,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  activo TINYINT DEFAULT 1,
   FOREIGN KEY (id_taller) REFERENCES talleres(id_taller) ON DELETE RESTRICT,
   UNIQUE (id_taller, nombre_tipo)
 ) ENGINE=InnoDB;
@@ -174,9 +184,9 @@ CREATE TABLE equipos (
   marca_equipo VARCHAR(100),
   modelo_equipo VARCHAR(100),
   descripcion_equipo TEXT,
-  activo TINYINT DEFAULT 1,
   fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   ultima_actualizacion TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+  activo TINYINT DEFAULT 1,
   FOREIGN KEY (id_taller) REFERENCES talleres(id_taller) ON DELETE RESTRICT,
   FOREIGN KEY (id_tipo) REFERENCES tipo_equipos(id_tipo) ON DELETE RESTRICT,
   UNIQUE (id_taller, num_serie),
@@ -254,22 +264,6 @@ CREATE TABLE pagos (
 ) ENGINE=InnoDB;
 
 -- =========================
--- HISTORIAL DE ORDENES
--- =========================
-CREATE TABLE orden_historial (
-  id_historial INT AUTO_INCREMENT PRIMARY KEY,
-  id_orden INT NOT NULL,
-  accion VARCHAR(150) NOT NULL,
-  detalle TEXT,
-  id_usuario CHAR(36) NULL,
-  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (id_orden) REFERENCES ordenes(id_orden) ON DELETE CASCADE,
-  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
-  INDEX idx_historial_orden (id_orden),
-  INDEX idx_historial_fecha (fecha)
-) ENGINE=InnoDB;
-
--- =========================
 -- ARCHIVOS ADJUNTOS
 -- =========================
 CREATE TABLE archivos (
@@ -317,10 +311,10 @@ CREATE TABLE refresh_tokens (
 ) ENGINE=InnoDB;
 
 -- ============================================
--- EXTENSIÓN: CAMPOS DE GARANTÍA EN ORDENES (SGST) Y TABLA ORDENES_GARANTIAS
+-- CAMPOS DE GARANTÍA EN ORDENES (SGST) Y TABLA ORDENES_GARANTIAS
 -- ============================================
 
-CREATE TABLE IF NOT EXISTS ordenes_garantias (
+CREATE TABLE ordenes_garantias (
   id_garantia INT AUTO_INCREMENT PRIMARY KEY,
   id_orden INT NOT NULL,
   id_orden_origen INT NULL,
@@ -334,10 +328,6 @@ CREATE TABLE IF NOT EXISTS ordenes_garantias (
   INDEX idx_ordenes_garantias_orden (id_orden),
   INDEX idx_ordenes_garantias_orden_origen (id_orden_origen)
 ) ENGINE=InnoDB;
-
--- ============================================
--- MÓDULOS ADICIONALES DEL SISTEMA
--- ============================================
 
 -- =========================
 -- CATÁLOGOS ADICIONALES
@@ -484,7 +474,11 @@ CREATE TABLE compras_detalle (
   FOREIGN KEY (id_compra) REFERENCES compras(id_compra) ON DELETE CASCADE,
   FOREIGN KEY (id_refaccion) REFERENCES refacciones(id_refaccion) ON DELETE RESTRICT,
   FOREIGN KEY (id_producto_venta) REFERENCES productos_venta(id_producto) ON DELETE RESTRICT,
-  INDEX idx_compras_detalle_compra (id_compra)
+  INDEX idx_compras_detalle_compra (id_compra),
+  CHECK (
+    (tipo_item = 'refaccion' AND id_refaccion IS NOT NULL AND id_producto_venta IS NULL)
+    OR (tipo_item = 'producto_venta' AND id_producto_venta IS NOT NULL AND id_refaccion IS NULL)
+  )
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -495,7 +489,6 @@ CREATE TABLE ventas (
   id_venta INT AUTO_INCREMENT PRIMARY KEY,
   id_taller CHAR(36) NOT NULL,
   num_venta INT NOT NULL,
-  id_cliente INT NULL,
   fecha_venta DATE NOT NULL DEFAULT (CURRENT_DATE),
   total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   id_metodo_pago INT NULL,
@@ -503,12 +496,11 @@ CREATE TABLE ventas (
   creado_por CHAR(36) NULL,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_taller) REFERENCES talleres(id_taller) ON DELETE RESTRICT,
-  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE SET NULL,
   FOREIGN KEY (id_metodo_pago) REFERENCES cat_metodos_pago(id_metodo) ON DELETE SET NULL,
   FOREIGN KEY (creado_por) REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
   UNIQUE (id_taller, num_venta),
   INDEX idx_ventas_taller_fecha (id_taller, fecha_venta),
-  INDEX idx_ventas_taller_cliente (id_taller, id_cliente)
+  INDEX idx_ventas_taller (id_taller)
 ) ENGINE=InnoDB;
 
 CREATE TABLE ventas_detalle (
@@ -583,25 +575,6 @@ CREATE TABLE finanzas_movimientos (
 ) ENGINE=InnoDB;
 
 -- =========================
--- GASTOS OPERATIVOS
--- =========================
-
-CREATE TABLE gastos (
-  id_gasto INT AUTO_INCREMENT PRIMARY KEY,
-  id_taller CHAR(36) NOT NULL,
-  categoria VARCHAR(100) NOT NULL,
-  concepto VARCHAR(255) NOT NULL,
-  monto DECIMAL(12,2) NOT NULL,
-  fecha_gasto DATE NOT NULL DEFAULT (CURRENT_DATE),
-  ruta_comprobante VARCHAR(255),
-  creado_por CHAR(36) NULL,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (id_taller) REFERENCES talleres(id_taller) ON DELETE RESTRICT,
-  FOREIGN KEY (creado_por) REFERENCES usuarios(id_usuario) ON DELETE SET NULL,
-  INDEX idx_gastos_taller_fecha (id_taller, fecha_gasto)
-) ENGINE=InnoDB;
-
--- =========================
 -- HISTORIAL DE PRECIOS DE REFACCIONES
 -- =========================
 
@@ -624,6 +597,22 @@ CREATE TABLE refacciones_precios_historial (
 -- Nota: Los triggers se crean sin DELIMITER para compatibilidad con ejecución directa
 -- Si se ejecuta desde línea de comandos MySQL/MariaDB, se debe usar DELIMITER $$
 
+-- Trigger: Asegurar que pagos.id_taller coincida con la orden (INSERT)
+CREATE TRIGGER trg_pagos_id_taller_insert
+BEFORE INSERT ON pagos
+FOR EACH ROW
+BEGIN
+  SET NEW.id_taller = (SELECT id_taller FROM ordenes WHERE id_orden = NEW.id_orden LIMIT 1);
+END;
+
+-- Trigger: Asegurar que pagos.id_taller coincida con la orden (UPDATE)
+CREATE TRIGGER trg_pagos_id_taller_update
+BEFORE UPDATE ON pagos
+FOR EACH ROW
+BEGIN
+  SET NEW.id_taller = (SELECT id_taller FROM ordenes WHERE id_orden = NEW.id_orden LIMIT 1);
+END;
+
 -- Trigger: Validar máximo 3 imágenes por orden
 CREATE TRIGGER trg_validar_max_imagenes_recepcion
 BEFORE INSERT ON ordenes_imagenes_recepcion
@@ -640,29 +629,9 @@ BEGIN
   END IF;
 END;
 
--- Trigger: Actualizar stock al confirmar compra de refacciones
-CREATE TRIGGER trg_actualizar_stock_refacciones_compra
-AFTER INSERT ON compras_detalle
-FOR EACH ROW
-BEGIN
-  IF NEW.tipo_item = 'refaccion' AND NEW.id_refaccion IS NOT NULL THEN
-    UPDATE refacciones
-    SET stock_actual = stock_actual + NEW.cantidad
-    WHERE id_refaccion = NEW.id_refaccion;
-  END IF;
-END;
-
--- Trigger: Actualizar stock al confirmar compra de productos venta
-CREATE TRIGGER trg_actualizar_stock_productos_compra
-AFTER INSERT ON compras_detalle
-FOR EACH ROW
-BEGIN
-  IF NEW.tipo_item = 'producto_venta' AND NEW.id_producto_venta IS NOT NULL THEN
-    UPDATE productos_venta
-    SET stock_actual = stock_actual + NEW.cantidad
-    WHERE id_producto = NEW.id_producto_venta;
-  END IF;
-END;
+-- Se quitaron los triggers de actualización de stock de refacciones y productos venta, porque primero se deben de confirmar sus respectivas compras.
+-- Se insertarán los products en refacciones y en productos_venta cuando se confirmen sus respectivas compras manualmente en el endpoint correspondiente.
+-- La reducción de stock ya lo harán sus respectivos triggers son los siguientes.
 
 -- Trigger: Reducir stock al usar refacción en orden
 CREATE TRIGGER trg_reducir_stock_refacciones_orden
@@ -748,20 +717,6 @@ BEGIN
       -NEW.monto, DATE(NEW.fecha_anulacion), NEW.id_pago, 'pago_anulado', NEW.creado_por
     );
   END IF;
-END;
-
--- Trigger: Registrar movimiento financiero al crear gasto
-CREATE TRIGGER trg_finanzas_gasto
-AFTER INSERT ON gastos
-FOR EACH ROW
-BEGIN
-  INSERT INTO finanzas_movimientos (
-    id_taller, tipo_movimiento, categoria, concepto, monto,
-    fecha_movimiento, id_relacionado, tipo_relacionado, creado_por
-  ) VALUES (
-    NEW.id_taller, 'egreso', 'gasto', NEW.concepto,
-    NEW.monto, NEW.fecha_gasto, NEW.id_gasto, 'gasto', NEW.creado_por
-  );
 END;
 
 -- Trigger: Registrar historial de cambios de precio en refacciones
