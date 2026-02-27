@@ -17,7 +17,7 @@ class SuscripcionDTO(BaseModel):
     id_empresa: str
     fecha_inicio: date
     fecha_fin: date | None = None
-    activa: bool
+    activo: bool
 
 class SuscripcionConDetalleDTO(SuscripcionDTO):
     id_suscripcion: int
@@ -25,7 +25,7 @@ class SuscripcionConDetalleDTO(SuscripcionDTO):
     id_licencia: str
     fecha_inicio: date
     fecha_fin: date | None = None
-    activa: bool
+    activo: bool
 
 class VerificacionSuscripcionDTO(BaseModel):
     tiene_suscripcion: bool

@@ -60,6 +60,6 @@ class SuscripcionesService:
                 "id_empresa": usuario.id_empresa,
                 "id_licencia": id_licencia,
                 "fecha_fin": fecha_fin,
-                "activa": 1,
+                "activo": 1,
             },
         )

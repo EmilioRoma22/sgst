@@ -17,7 +17,23 @@ def _cookie_params():
     return {
         "httponly": True,
         "secure": settings.COOKIES_SECURE,
-        "samesite": "lax",
+        "samesite": "Strict",
+        "path": "/api/v1/auth/refresh",
+    }
+
+def _cookie_params_access_token():
+    return {
+        "httponly": True,
+        "secure": settings.COOKIES_SECURE,
+        "samesite": "Strict",
+        "path": "/",
+    }
+
+def _cookie_params_id_taller_actual():
+    return {
+        "httponly": True,
+        "secure": settings.COOKIES_SECURE,
+        "samesite": "Strict",
         "path": "/",
     }
 
@@ -59,7 +75,7 @@ async def refresh_token(request: Request, bd=Depends(obtener_conexion_bd)):
         key="access_token",
         value=tokens.access_token,
         max_age=10 * 60,
-        **_cookie_params(),
+        **_cookie_params_access_token(),
     )
     response.set_cookie(
         key="refresh_token",
@@ -85,7 +101,7 @@ async def login(request: Request, credenciales: LoginDTO, bd=Depends(obtener_con
         key="access_token",
         value=login_response.tokens.access_token,
         max_age=10 * 60,
-        **_cookie_params(),
+        **_cookie_params_access_token(),
     )
     response.set_cookie(
         key="refresh_token",
@@ -114,7 +130,7 @@ async def elegir_taller(
         key="id_taller_actual",
         value=str(datos.id_taller),
         max_age=24 * 60 * 60,
-        **_cookie_params(),
+        **_cookie_params_id_taller_actual(),
     )
     return response
 
@@ -134,7 +150,7 @@ async def login_taller(request: Request, bd = Depends(obtener_conexion_bd)):
             key="id_taller_actual",
             value=str(taller_rol.id_taller),
             max_age=24 * 60 * 60,
-            **_cookie_params(),
+            **_cookie_params_id_taller_actual(),
         )
     return response
 
@@ -154,12 +170,14 @@ async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_
         content={"message": "Sesión cerrada correctamente"},
         status_code=status.HTTP_200_OK,
     )
-    cookie_params = _cookie_params()
+    cookie_params_refresh_token = _cookie_params()
+    cookie_params_access_token = _cookie_params_access_token()
+    cookie_params_id_taller_actual = _cookie_params_id_taller_actual()
     # Si el usuario no es administrador, entonces es un logout desde el dashboard hecho por un empleado, 
     # por ende, se cierra la sesión por completo.
     if usuario.id_empresa is None:
-        response.delete_cookie("access_token", **cookie_params)
-        response.delete_cookie("refresh_token", **cookie_params)
+        response.delete_cookie("access_token", **cookie_params_access_token)
+        response.delete_cookie("refresh_token", **cookie_params_refresh_token)
         
         tokens_service = TokensService(bd)
         tokens_service.revocar_refreshs_tokens(usuario.id_usuario)
@@ -170,10 +188,10 @@ async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_
     # Si tiene un taller activo, no se cierra la sesión por completo, solo se cierra el taller activo para que el admin
     # vaya directamente al dashboard/talleres.
     if usuario.id_empresa is not None and id_taller_cookie is None:
-        response.delete_cookie("access_token", **cookie_params)
-        response.delete_cookie("refresh_token", **cookie_params)
+        response.delete_cookie("access_token", **cookie_params_access_token)
+        response.delete_cookie("refresh_token", **cookie_params_refresh_token)
         
         tokens_service = TokensService(bd)
         tokens_service.revocar_refreshs_tokens(usuario.id_usuario)
-    response.delete_cookie("id_taller_actual", **cookie_params)
+    response.delete_cookie("id_taller_actual", **cookie_params_id_taller_actual)
     return response
