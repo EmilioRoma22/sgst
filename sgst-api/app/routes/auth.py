@@ -162,7 +162,7 @@ async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_
         response.delete_cookie("refresh_token", **cookie_params)
         
         tokens_service = TokensService(bd)
-        tokens_service.revocar_refresh_token(request.cookies.get("refresh_token"))
+        tokens_service.revocar_refreshs_tokens(usuario.id_usuario)
         
     id_taller_cookie = request.cookies.get("id_taller_actual")
     # Si el usuario es administrador y no tiene un taller activo, 
@@ -174,6 +174,6 @@ async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_
         response.delete_cookie("refresh_token", **cookie_params)
         
         tokens_service = TokensService(bd)
-        tokens_service.revocar_refresh_token(request.cookies.get("refresh_token"))
+        tokens_service.revocar_refreshs_tokens(usuario.id_usuario)
     response.delete_cookie("id_taller_actual", **cookie_params)
     return response
