@@ -22,4 +22,10 @@ class RefreshTokenRepository(BaseRepository):
         self.db.commit() # Se hace commit aqui ya que se está usando un soft delete y después tiraremos una 
                          # excepción, al tirar una excepción se hace un rollback en la dependencia de la base de datos, 
                          # así que confirmamos solamente esta acción.
-        
+    
+    def revocar_todos_los_refresh_tokens_del_usuario(self, id_usuario: str) -> None:
+        query = f"""UPDATE {self.table_name} SET valido = 0 WHERE id_usuario = %s"""
+        self.execute(query, (id_usuario,))
+        self.db.commit() # Se hace commit aqui ya que se está usando un soft delete y después tiraremos una 
+                         # excepción, al tirar una excepción se hace un rollback en la dependencia de la base de datos, 
+                         # así que confirmamos solamente esta acción.

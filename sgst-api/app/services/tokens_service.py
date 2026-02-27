@@ -50,7 +50,8 @@ class TokensService:
         if self.refresh_token_expirado(token_bd):
             raise TokenExpiradoException()
         
-        self.refresh_token_repository.revocar_refresh_token(token_bd)
+        # Se revocan todos los refresh tokens del usuario para que no haya más de uno activo
+        self.refresh_token_repository.revocar_todos_los_refresh_tokens_del_usuario(token_bd.id_usuario)
         usuario = self.usuarios_repository.obtener_usuario_por_id(token_bd.id_usuario)
         
         if not usuario:
@@ -70,3 +71,9 @@ class TokensService:
             return
         
         self.refresh_token_repository.revocar_refresh_token(token)
+        
+    def revocar_refreshs_tokens(self, id_usuario: int):
+        if not id_usuario:
+            return
+        
+        self.refresh_token_repository.revocar_todos_los_refresh_tokens_del_usuario(id_usuario)

@@ -3,10 +3,9 @@ from app.models.usuarios import UsuarioDTO
 from app.core.exceptions import CamposIncompletosException, HayCorreoRepetidoException, HayTelefonoRepetidoException, UsuarioNoEncontradoException, CredencialesIncorrectasException, UsuarioNoEsAdminNiPerteneceAlTallerException, ContraseñasNoCoincidenException
 from app.services.tokens_service import TokensService
 from app.models.auth import LoginResponseDTO, RegistroDTO
-from app.core.security import decodificar_token
+from app.core.security import decodificar_token, get_password_hash, verify_password
 from app.repositories.usuarios_talleres_repository import UsuariosTalleresRepository
 from app.models.taller import TallerRolDTO
-import bcrypt
 import uuid
 
 class AuthService:
@@ -26,7 +25,7 @@ class AuthService:
             # no debe de saber que está desactivado, solamente hay que decirle que no existe.
             raise UsuarioNoEncontradoException() 
         
-        if not bcrypt.checkpw(password_usuario.encode('utf-8'), usuario.hash_password.encode('utf-8')):
+        if not verify_password(password_usuario, usuario.hash_password):
             raise CredencialesIncorrectasException()
         
         return usuario
@@ -75,7 +74,7 @@ class AuthService:
     
     def registro(self, datos: RegistroDTO) -> None:
         self.verificar_datos_registro(datos)
-        hash_password = bcrypt.hashpw(datos.password_usuario.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        hash_password = get_password_hash(datos.password_usuario)
         id_usuario = str(uuid.uuid4())
 
         self.usuarios_repository.create(data={

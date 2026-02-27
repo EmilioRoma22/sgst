@@ -29,7 +29,8 @@ class Settings:
     JWT_SECRET_KEY: str = os.getenv("SECRET_KEY")
     JWT_ALGORITHM: str = _obtener_algoritmo_jwt()
     JWT_SECRET_KEY_MIN_LENGTH: int = 32
-
+    SCHEMES: str = os.getenv("SCHEMES")
+    ARGON2_ROUNDS: int = os.getenv("ARGON2_ROUNDS")
     COOKIES_SECURE: bool = os.getenv("COOKIES_SECURE", "false").lower() in ("true", "1", "yes")
 
 settings = Settings()
