@@ -33,8 +33,28 @@ const CODIGOS_SESION_TALLER_FINALIZADA = [
   "NO_HAY_TALLER_ACTIVO",
 ]
 
+const CODIGO_CSRF_INVALIDO = "CSRF_TOKEN_INVALIDO"
+
+const CSRF_HEADER_NAME = "X-CSRF-Token"
+
 const esRutaVerificacion = (url: string | undefined) =>
   RUTAS_VERIFICACION_SESION.some((ruta) => url?.includes(ruta))
+
+let csrfToken: string | null = null
+
+export function setCsrfToken(token: string | null): void {
+  csrfToken = token
+}
+
+function getCsrfToken(): string | null {
+  return csrfToken
+}
+
+function esMetodoMutador(method?: string): boolean {
+  if (!method) return false
+  const m = method.toUpperCase()
+  return m === "POST" || m === "PUT" || m === "PATCH" || m === "DELETE"
+}
 
 const cliente = axios.create({
   baseURL: URL_BASE,
@@ -43,8 +63,27 @@ const cliente = axios.create({
 
 let promesaRefresco: Promise<void> | null = null
 
+cliente.interceptors.request.use((config) => {
+  if (esMetodoMutador(config.method)) {
+    const token = getCsrfToken()
+    if (token) {
+      config.headers[CSRF_HEADER_NAME] = token
+    }
+  }
+  return config
+})
+
 cliente.interceptors.response.use(
-  (respuesta) => respuesta,
+  (respuesta) => {
+    const data = respuesta?.data
+    if (data && typeof data === "object" && "csrf_token" in data && typeof (data as { csrf_token: unknown }).csrf_token === "string") {
+      setCsrfToken((data as { csrf_token: string }).csrf_token)
+    }
+    if (respuesta.config.url?.includes("/auth/cerrar_sesion")) {
+      setCsrfToken(null)
+    }
+    return respuesta
+  },
   async (error) => {
     const configOriginal = error.config
     const codigoError = error.response?.data?.error?.code
@@ -57,6 +96,13 @@ cliente.interceptors.response.use(
       } else {
         window.location.replace("/dashboard/talleres")
       }
+      return Promise.reject(error)
+    }
+
+    if (error.response?.status === 403 && codigoError === CODIGO_CSRF_INVALIDO) {
+      setCsrfToken(null)
+      mostrarToast.error("Sesión de seguridad inválida. Inicie sesión de nuevo.")
+      window.location.href = "/login"
       return Promise.reject(error)
     }
 
@@ -75,8 +121,8 @@ cliente.interceptors.response.use(
     configOriginal._reintentado = true
 
     if (!promesaRefresco) {
-      promesaRefresco = axios
-        .post(`${URL_BASE}/auth/refresh`, null, { withCredentials: true })
+      promesaRefresco = cliente
+        .post("/auth/refresh", null)
         .then(() => {})
         .finally(() => {
           promesaRefresco = null
