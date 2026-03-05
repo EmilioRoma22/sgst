@@ -344,3 +344,13 @@ class NoTienesPermisoParaAccederARecursoException(AppException):
             message="No tienes permisos para acceder a este recurso.",
             details={}
         )
+
+
+class CsrfTokenInvalidoException(AppException):
+    def __init__(self):
+        super().__init__(
+            status_code=403,
+            code="CSRF_TOKEN_INVALIDO",
+            message="Token de seguridad inválido o faltante. Recargue la página e intente de nuevo.",
+            details={}
+        )

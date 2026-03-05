@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.routes import auth, empresas, suscripciones, talleres, clientes, equipos
 from app.core.exceptions import AppException
+from app.core.csrf import CSRF_COOKIE_NAME, CsrfMiddleware
 
 
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
     app.add_middleware(SlowAPIMiddleware)
 
     configure_cors(app)
+    app.add_middleware(CsrfMiddleware)
     include_routers(app)
     return app
 
@@ -79,6 +81,7 @@ async def app_exception_handler(
         }
         response.delete_cookie("access_token", **cookie_params)
         response.delete_cookie("refresh_token", **cookie_params)
+        response.delete_cookie(CSRF_COOKIE_NAME, path="/", samesite="lax")
         if request.url.path.endswith("/auth/cerrar_sesion"):
             response.delete_cookie("id_taller_actual", **cookie_params)
 

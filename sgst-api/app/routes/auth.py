@@ -12,6 +12,7 @@ from app.dependencies.auth import obtener_usuario_actual, obtener_usuario_actual
 from app.models.taller import TallerDTO, ElegirTallerDTO
 from app.core.exceptions import NoEsAdministradorException, TallerNoEncontradoException, TallerNoPerteneceAEmpresaException
 from app.repositories.talleres_repository import TalleresRepository
+from app.core.csrf import generar_token_csrf, CSRF_COOKIE_NAME
 
 def _cookie_params():
     return {
@@ -37,6 +38,14 @@ def _cookie_params_id_taller_actual():
         "path": "/",
     }
 
+def _cookie_params_csrf():
+    return {
+        "httponly": False,
+        "secure": settings.COOKIES_SECURE,
+        "samesite": "Strict",
+        "path": "/",
+    }
+
 router = APIRouter(
     prefix="/auth",
     tags=["auth"],
@@ -53,15 +62,26 @@ async def me_taller(taller: TallerDTO | None = Depends(obtener_taller_actual)):
     }
 
 @router.get("/me", status_code=status.HTTP_200_OK)
-async def me(usuario: UsuarioDTO = Depends(obtener_usuario_actual)):
-    return {
-        "id_usuario": usuario.id_usuario,
-        "id_empresa": usuario.id_empresa,
-        "nombre_usuario": usuario.nombre_usuario,
-        "apellidos_usuario": usuario.apellidos_usuario,
-        "correo_usuario": usuario.correo_usuario,
-        "telefono_usuario": usuario.telefono_usuario,
-    }
+async def me(request: Request, usuario: UsuarioDTO = Depends(obtener_usuario_actual)):
+    csrf_token = generar_token_csrf()
+    response = JSONResponse(
+        content={
+            "id_usuario": usuario.id_usuario,
+            "id_empresa": usuario.id_empresa,
+            "nombre_usuario": usuario.nombre_usuario,
+            "apellidos_usuario": usuario.apellidos_usuario,
+            "correo_usuario": usuario.correo_usuario,
+            "telefono_usuario": usuario.telefono_usuario,
+            "csrf_token": csrf_token,
+        }
+    )
+    response.set_cookie(
+        key=CSRF_COOKIE_NAME,
+        value=csrf_token,
+        max_age=10 * 60,
+        **_cookie_params_csrf(),
+    )
+    return response
 
 @router.post("/refresh", status_code=status.HTTP_200_OK)
 @limiter.limit("30/minute")
@@ -69,7 +89,8 @@ async def refresh_token(request: Request, bd=Depends(obtener_conexion_bd)):
     refresh_token_cookie = request.cookies.get("refresh_token")
     tokens_service = TokensService(bd)
     tokens = tokens_service.refresh_token(refresh_token_cookie)
-    response = JSONResponse(content = {"message": "Token actualizado correctamente"})
+    csrf_token = generar_token_csrf()
+    response = JSONResponse(content={"message": "Token actualizado correctamente", "csrf_token": csrf_token})
 
     response.set_cookie(
         key="access_token",
@@ -83,6 +104,12 @@ async def refresh_token(request: Request, bd=Depends(obtener_conexion_bd)):
         max_age=24 * 60 * 60,
         **_cookie_params(),
     )
+    response.set_cookie(
+        key=CSRF_COOKIE_NAME,
+        value=csrf_token,
+        max_age=10 * 60,
+        **_cookie_params_csrf(),
+    )
     return response
 
 @router.post("/login", status_code=status.HTTP_200_OK)
@@ -90,13 +117,13 @@ async def refresh_token(request: Request, bd=Depends(obtener_conexion_bd)):
 async def login(request: Request, credenciales: LoginDTO, bd=Depends(obtener_conexion_bd)):
     auth_service = AuthService(bd)
     login_response = auth_service.login(credenciales.correo_usuario, credenciales.password_usuario)
-    
+    csrf_token = generar_token_csrf()
     response = JSONResponse(
         content={
-            "message": "¡Bienvenido! Iniciaste sesión correctamente"
+            "message": "¡Bienvenido! Iniciaste sesión correctamente",
+            "csrf_token": csrf_token,
         }
     )
-    
     response.set_cookie(
         key="access_token",
         value=login_response.tokens.access_token,
@@ -108,6 +135,12 @@ async def login(request: Request, credenciales: LoginDTO, bd=Depends(obtener_con
         value=login_response.tokens.refresh_token,
         max_age=24 * 60 * 60,
         **_cookie_params(),
+    )
+    response.set_cookie(
+        key=CSRF_COOKIE_NAME,
+        value=csrf_token,
+        max_age=10 * 60,
+        **_cookie_params_csrf(),
     )
     return response
 
@@ -178,6 +211,7 @@ async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_
     if usuario.id_empresa is None:
         response.delete_cookie("access_token", **cookie_params_access_token)
         response.delete_cookie("refresh_token", **cookie_params_refresh_token)
+        response.delete_cookie(CSRF_COOKIE_NAME, **_cookie_params_csrf())
         
         tokens_service = TokensService(bd)
         tokens_service.revocar_refreshs_tokens(usuario.id_usuario)
@@ -190,6 +224,7 @@ async def cerrar_sesion(request: Request, usuario: UsuarioDTO = Depends(obtener_
     if usuario.id_empresa is not None and id_taller_cookie is None:
         response.delete_cookie("access_token", **cookie_params_access_token)
         response.delete_cookie("refresh_token", **cookie_params_refresh_token)
+        response.delete_cookie(CSRF_COOKIE_NAME, **_cookie_params_csrf())
         
         tokens_service = TokensService(bd)
         tokens_service.revocar_refreshs_tokens(usuario.id_usuario)
